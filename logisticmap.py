@@ -1,8 +1,6 @@
 import streamlit as st
 import numpy as np
-import matplotlib.pyplot as plt
-import mpld3
-import streamlit.components.v1 as components
+import plotly.graph_objs as go
 
 def logistic_map(x, r):
     return r * x * (1 - x)
@@ -15,35 +13,26 @@ def generate_logistic_sequence(r, x0, n):
     return x
 
 def plot_all_x(r_values, x0, n):
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig = go.Figure()
     for r in r_values:
         x = generate_logistic_sequence(r, x0, n)
-        ax.plot(np.full(n, r), x, '.', markersize=1)
-    ax.set_xlabel('r')
-    ax.set_ylabel('x')
-    ax.set_title('Logistic Map: x vs. r')
-    components.html(mpld3.fig_to_html(fig), height=600)
-    #st.pyplot(fig)
+        fig.add_trace(go.Scatter(x=np.full(n, r), y=x, mode='markers', marker=dict(size=3), name=f'r={r}', hoverinfo='name'))
+    fig.update_layout(title='Logistic Map: x vs. r', xaxis_title='r', yaxis_title='x', showlegend=False)
+    st.plotly_chart(fig)
 
 def plot_specific_x(r, x0, n):
     x = generate_logistic_sequence(r, x0, n)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(np.arange(n), x, '-')
-    ax.set_xlabel('t')
-    ax.set_ylabel('x')
-    ax.set_title(f'Logistic Map: x vs. t for r = {r}')
-    components.html(mpld3.fig_to_html(fig),height=600)
-    #st.pyplot(fig)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=np.arange(n), y=x, mode='markers+lines', name='x(t)'))
+    fig.update_layout(title=f'Logistic Map: x vs. t for r = {r}', xaxis_title='t', yaxis_title='x')
+    st.plotly_chart(fig)
 
 def plot_histogram(r, x0, n):
     x = generate_logistic_sequence(r, x0, n)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.hist(x, bins=20, density=True, alpha=0.7)
-    ax.set_xlabel('x')
-    ax.set_ylabel('Frequency')
-    ax.set_title(f'Histogram of x for r = {r}')
-    components.html(mpld3.fig_to_html(fig),height=600)
-    #st.pyplot(fig)
+    fig = go.Figure()
+    fig.add_trace(go.Histogram(x=x, nbinsx=20, name='Histogram of x', hoverinfo='none'))
+    fig.update_layout(title=f'Histogram of x for r = {r}', xaxis_title='x', yaxis_title='Frequency')
+    st.plotly_chart(fig)
 
 
 def plot_cobweb(f, r, x0, nmax=50):
@@ -53,17 +42,14 @@ def plot_cobweb(f, r, x0, nmax=50):
     iterating x = f(x) starting at x = x0. r is a parameter to the function.
 
     """
-    dpi = 100
     x = np.linspace(0, 1, 500)
-    fig = plt.figure(figsize=(600/dpi, 450/dpi), dpi=dpi)
-    ax = fig.add_subplot(111)
 
     # Plot y = f(x) and y = x
-    ax.plot(x, f(x, r), 'o-', c='#444444', lw=2)
-    ax.plot(x, x, 'o-', c='#444444', lw=2)
+    trace_function = go.Scatter(x=x, y=f(x, r), mode='lines', line=dict(color='#444444', width=2), name='y = f(x)')
+    trace_identity = go.Scatter(x=x, y=x, mode='lines', line=dict(color='#444444', width=2), name='y = x')
 
     # Iterate x = f(x) for nmax steps, starting at (x0, 0).
-    px, py = np.empty((2,nmax+1,2))
+    px, py = np.empty((2, nmax+1, 2))
     px[0], py[0] = x0, 0
     for n in range(1, nmax, 2):
         px[n] = px[n-1]
@@ -72,21 +58,22 @@ def plot_cobweb(f, r, x0, nmax=50):
         py[n+1] = py[n]
 
     # Plot the path traced out by the iteration.
-    ax.plot(px, py, c='b', alpha=0.7)
+    trace_path = go.Scatter(
+        x=px.flatten(),
+        y=py.flatten(),
+        mode='lines',
+        line=dict(color='blue'),
+        name='Path')
 
-    #ax.plot(f(x, r), np.roll(f(x, r), -1), '-o', color='red')
+    layout = go.Layout(
+        title=f'x_0 = {x0:.1f}, r = {r:.3f}',
+        xaxis=dict(title=r'x'),
+        yaxis=dict(title=r'f(x)'),
+        showlegend=True
+    )
 
-    # Annotate and tidy the plot.
-    ax.minorticks_on()
-    ax.grid(which='minor', alpha=0.5)
-    ax.grid(which='major', alpha=0.5)
-    ax.set_aspect('equal')
-    ax.set_xlabel('$x$')
-    ax.set_ylabel('$f(x)$')
-    ax.set_title('$x_0 = {:.1}, r = {:.3}$'.format(x0, r))
-    components.html(mpld3.fig_to_html(fig),height=600)
-    #st.pyplot(fig)
-
+    fig = go.Figure(data=[trace_function, trace_identity, trace_path], layout=layout)
+    st.plotly_chart(fig)
 
 def cobweb_plot(r, x0, n):
     x = generate_logistic_sequence(r, x0, n)
