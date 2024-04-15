@@ -6,12 +6,13 @@ def logistic_map(x, r):
     return r * x * (1 - x)
 
 def generate_logistic_sequence(r, x0, n):
-    x = np.zeros(n)
+    x = np.empty(n)
     x[0] = x0
     for i in range(1, n):
         x[i] = logistic_map(x[i-1], r)
     return x
 
+@st.cache_data(experimental_allow_widgets=True)
 def plot_all_x(r_values, x0, n):
     fig = go.Figure()
     for r in r_values:
@@ -75,39 +76,38 @@ def plot_cobweb(f, r, x0, nmax=50):
     fig = go.Figure(data=[trace_function, trace_identity, trace_path], layout=layout)
     st.plotly_chart(fig)
 
-def cobweb_plot(r, x0, n):
-    x = generate_logistic_sequence(r, x0, n)
-    fig, ax = plt.subplots(figsize=(10, 6))
-    x_values = np.linspace(x0, 1, 100)
-    ax.plot(x_values,x_values, '--', color='gray')
-    ax.plot(x_values, logistic_map(x_values,r), '-o', color='blue')
-    ax.plot(x, np.roll(x, -1), '-o', color='red')
-    #for i in range(n-1):
-    #    ax.plot([x[i], x[i]], [x[i], x[i+1]], color='red')
-    #    ax.plot([x[i], x[i+1]], [x[i+1], x[i+1]], color='red')
-    ax.set_title(f'Cobweb Plot for r = {r}')
-    st.pyplot(fig)
 
 def main():
     st.title('Logistic Map Visualization')
     
     # Parameters
-    r_values = np.linspace(2.5, 4.0, 100)
+    r_min = 2.
+    r_max = 4.
+    r_step = 0.01
+    n_min = 10
+    n_max = 1000
+    n_step = 10
+
     x0 = 0.01
-    n = 100
+    r_values = np.arange(r_min, r_max, r_step)
+
     
     # Sidebar
-    selected_r = st.sidebar.slider('r', min_value=2.5, max_value=4.0, value=3.5, step=0.01)
+    with st.sidebar:
+        st.title('Parameters')
+        selected_r = st.slider('r', min_value=r_min, max_value=r_max, value=3.5, step=r_step) 
+        selected_n = st.slider('n', min_value=n_min, max_value=n_max, value=100, step=n_step)
+
     
     # Main content
     st.write('### Plot of x for each r')
-    plot_all_x(r_values, x0, n)
+    plot_all_x(r_values, x0, selected_n)
     
     st.write('### Plot of x(t) for a specific r')
-    plot_specific_x(selected_r, x0, n)
+    plot_specific_x(selected_r, x0, selected_n)
 
     st.write('### Histogram of x for a specific r')
-    plot_histogram(selected_r, x0, n)
+    plot_histogram(selected_r, x0, selected_n)
 
     st.write('### Cobweb Plot for a specific r')
     plot_cobweb(logistic_map,selected_r, x0)
