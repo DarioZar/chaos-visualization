@@ -75,7 +75,7 @@ def main():
     n_step = 10
     r_step_min = 0.001
     r_step_max = 0.1
-    r_step_default = 0.005
+    r_step_default = 0.001
 
     x0 = 0.01
 
@@ -96,7 +96,7 @@ def main():
                                           value=r_step_default, step=r_step_min, format="%.3f")
 
     r_values = np.arange(r_min, r_max, selected_r_step)
-    show_bokeh_plot(plot_all_x(r_values, selected_x0, selected_n if selected_n<=100 else 100))
+    show_bokeh_plot(plot_all_x(r_values, x0, selected_n if selected_n<=100 else 100))
     
     st.write('### Plot of x(t) for a specific r')
     plot_specific_x(selected_r, selected_x0, selected_n if selected_n<=100 else 100)
