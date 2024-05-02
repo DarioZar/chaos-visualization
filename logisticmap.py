@@ -73,6 +73,9 @@ def main():
     n_min = 10
     n_max = 1000
     n_step = 10
+    r_step_min = 0.001
+    r_step_max = 0.1
+    r_step_default = 0.005
 
     x0 = 0.01
 
@@ -82,25 +85,27 @@ def main():
         st.title('Parameters')
         selected_r = st.slider('r', min_value=r_min, max_value=r_max, value=3.5, step=r_step) 
         selected_n = st.slider('n', min_value=n_min, max_value=n_max, value=100, step=n_step)
+        selected_x0 = st.number_input('x0', min_value=0.0, max_value=1.0, value=x0, step=0.01, format="%.2f")
 
     
     # Main content
     st.write('### Plot of x for each r')
     st.write("$$x_i=rx_{i-1}(1-x_{i-1})$$")
     with st.expander('Set step for r'):
-        r_step = st.number_input('r step', min_value=0.001, max_value=0.1, value=0.001, step=0.001, format="%.3f")
+        selected_r_step = st.number_input('r step', min_value=r_step_min, max_value=r_step_max,
+                                          value=r_step_default, step=r_step_min, format="%.3f")
 
-    r_values = np.arange(r_min, r_max, r_step)
-    show_bokeh_plot(plot_all_x(r_values, x0, selected_n if selected_n<=100 else 100))
+    r_values = np.arange(r_min, r_max, selected_r_step)
+    show_bokeh_plot(plot_all_x(r_values, selected_x0, selected_n if selected_n<=100 else 100))
     
     st.write('### Plot of x(t) for a specific r')
-    plot_specific_x(selected_r, x0, selected_n if selected_n<=100 else 100)
+    plot_specific_x(selected_r, selected_x0, selected_n if selected_n<=100 else 100)
 
     st.write('### Histogram of x for a specific r')
-    plot_histogram(selected_r, x0, selected_n)
+    plot_histogram(selected_r, selected_x0, selected_n)
 
     st.write('### Cobweb Plot for a specific r')
-    plot_cobweb(logistic_map,selected_r, x0,nmax=selected_n)
+    plot_cobweb(logistic_map,selected_r, selected_x0,nmax=selected_n)
 
 if __name__ == '__main__':
     main()
