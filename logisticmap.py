@@ -15,7 +15,7 @@ def generate_logistic_sequence(r, x0, n):
         x[i] = logistic_map(x[i-1], r)
     return x
 
-@st.cache_resource(experimental_allow_widgets=True)
+@st.cache_resource
 def plot_all_x(r_values, x0, n):
     p = figure(title='Logistic Map: x vs. r', x_axis_label='r', y_axis_label='x', width=800, height=500)
     colors = Category10_10
@@ -24,7 +24,7 @@ def plot_all_x(r_values, x0, n):
         p.circle(np.full(n, r), x, size=2, color=colors[i%10])
     return file_html(p, 'cdn', )
 
-@st.cache_resource(experimental_allow_widgets=True)
+@st.fragment
 def show_bokeh_plot(html):
     return components.html(html, width=800, height=500, scrolling=False)
 
